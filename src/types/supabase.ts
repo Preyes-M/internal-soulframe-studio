@@ -773,6 +773,9 @@ export type Database = {
         | "podcasting"
         | "baby"
         | "modeling"
+        | "pending"
+        | "studio_rentals"
+        | "food"
       task_priority: "low" | "medium" | "high" | "urgent"
       task_status: "todo" | "in_progress" | "waiting" | "done"
       user_role: "admin" | "staff"
@@ -943,6 +946,9 @@ export const Constants = {
         "podcasting",
         "baby",
         "modeling",
+        "pending",
+        "studio_rentals",
+        "food",
       ],
       task_priority: ["low", "medium", "high", "urgent"],
       task_status: ["todo", "in_progress", "waiting", "done"],

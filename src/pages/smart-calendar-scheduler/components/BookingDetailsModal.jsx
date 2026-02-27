@@ -190,6 +190,20 @@ const BookingDetailsModal = ({ booking, onClose, onEdit, onDelete }) => {
             </div>
           )}
 
+          {booking?.deliverables && (
+            <div className="p-4 bg-muted/50 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Icon name="FileText" size={20} className="text-muted-foreground mt-1" />
+                <div className="flex-1">
+                  <div className="text-xs text-muted-foreground mb-2">Deliverables</div>
+                  <div className="text-sm text-foreground leading-relaxed">
+                    {booking?.deliverables}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center gap-3 pt-4 border-t border-border">
             <Button
               variant="outline"
