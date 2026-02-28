@@ -1,9 +1,12 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
 import Button from '../../../components/ui/Button';
-import { formatDate } from '../../../utils/timeFormat';
 
 const CalendarHeader = ({ currentDate, view, onViewChange, onNavigate, onToday }) => {
+  const formatDate = () => {
+    const options = { month: 'long', year: 'numeric' };
+    return currentDate?.toLocaleDateString('en-IN', options);
+  };
   const viewOptions = [
     { value: 'month', label: 'Month', icon: 'Calendar' },
     { value: 'week', label: 'Week', icon: 'CalendarDays' },
