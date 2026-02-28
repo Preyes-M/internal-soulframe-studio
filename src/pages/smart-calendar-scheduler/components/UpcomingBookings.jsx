@@ -1,36 +1,43 @@
+import { useEffect } from 'react';
 import React from 'react';
 import Icon from '../../../components/AppIcon';
 import { convertTo12Hour } from '../../../utils/timeFormat';
+import { shootTypeColors } from '../../../utils/Constants';
 
 const UpcomingBookings = ({ bookings, onBookingClick }) => {
-  const shootTypeColors = {
-    modeling: 'bg-blue-500/20 text-blue-400 border-blue-500',
-    podcasting: 'bg-purple-500/20 text-purple-400 border-purple-500',
-    maternity: 'bg-pink-500/20 text-pink-400 border-pink-500',
-    fashion: 'bg-red-500/20 text-red-400 border-red-500',
-    baby: 'bg-yellow-500/20 text-yellow-400 border-yellow-500',
-    product: 'bg-green-500/20 text-green-400 border-green-500'
-  };
 
-  const shootTypeLabels = {
-    modeling: 'Modeling',
-    podcasting: 'Podcasting',
-    maternity: 'Maternity',
-    fashion: 'Fashion',
-    baby: 'Baby',
-    product: 'Product'
+  useEffect(() => {
+    fetchEnums();
+  });
+
+  const fetchEnums = async () => {
+    setShootLoading(true);
+    try {
+      const [shootData] = await Promise.all([
+        lookupService.getEnumValues('shoot_type'),
+      ]);
+
+      const shootOpts = (shootData || []).map((v) => ({ value: v, label: humanize(v) }));
+      setShootTypeOptions(shootOpts);
+    } catch (err) {
+      console.error('Failed to fetch enum values from DB:', err);
+      const fallbackShoot = (Constants?.public?.Enums?.shoot_type || []).map((v) => ({ value: v, label: humanize(v) }));
+      setShootTypeOptions(fallbackShoot);
+    } finally {
+      setShootLoading(false);
+    }
   };
 
   const getUpcomingBookings = () => {
     const now = new Date();
     return bookings?.filter(booking => {
-        const bookingDate = new Date(`${booking.date}T${booking.time}`);
-        return bookingDate >= now;
-      })?.sort((a, b) => {
-        const dateA = new Date(`${a.date}T${a.time}`);
-        const dateB = new Date(`${b.date}T${b.time}`);
-        return dateA - dateB;
-      })?.slice(0, 5);
+      const bookingDate = new Date(`${booking.date}T${booking.time}`);
+      return bookingDate >= now;
+    })?.sort((a, b) => {
+      const dateA = new Date(`${a.date}T${a.time}`);
+      const dateB = new Date(`${b.date}T${b.time}`);
+      return dateA - dateB;
+    })?.slice(0, 5);
   };
 
   const formatDateTime = (date, time) => {
@@ -39,9 +46,9 @@ const UpcomingBookings = ({ bookings, onBookingClick }) => {
     const tomorrow = new Date(today);
     tomorrow?.setDate(tomorrow?.getDate() + 1);
 
-    let dateLabel = bookingDate?.toLocaleDateString('en-IN', { 
-      day: 'numeric', 
-      month: 'short' 
+    let dateLabel = bookingDate?.toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short'
     });
 
     if (bookingDate?.toDateString() === today?.toDateString()) {
@@ -84,7 +91,7 @@ const UpcomingBookings = ({ bookings, onBookingClick }) => {
                       {booking?.clientName}
                     </div>
                     <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs border ${shootTypeColors?.[booking?.shootType]}`}>
-                      {shootTypeLabels?.[booking?.shootType]}
+                      {shootTypeOptions ?.find(opt => opt.value === booking?.shootType)?.label}
                     </div>
                   </div>
                   <Icon name="ChevronRight" size={16} className="text-muted-foreground" />

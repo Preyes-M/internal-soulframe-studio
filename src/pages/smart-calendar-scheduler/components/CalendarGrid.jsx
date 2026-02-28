@@ -1,17 +1,9 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
 import { convertTo12Hour } from '../../../utils/timeFormat';
+import { shootTypeColors } from '../../../utils/Constants';
 
 const CalendarGrid = ({ view, currentDate, bookings, onBookingClick }) => {
-  const shootTypeColors = {
-    modeling: 'bg-blue-500/20 border-blue-500 text-blue-400',
-    podcasting: 'bg-purple-500/20 border-purple-500 text-purple-400',
-    maternity: 'bg-pink-500/20 border-pink-500 text-pink-400',
-    fashion: 'bg-red-500/20 border-red-500 text-red-400',
-    baby: 'bg-yellow-500/20 border-yellow-500 text-yellow-400',
-    product: 'bg-green-500/20 border-green-500 text-green-400'
-  };
-
   const getDaysInMonth = (date) => {
     const year = date?.getFullYear();
     const month = date?.getMonth();

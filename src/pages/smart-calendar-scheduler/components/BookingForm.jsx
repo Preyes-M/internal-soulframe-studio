@@ -17,7 +17,7 @@ const BookingForm = ({ onAddBooking, editingBooking, onCancelEdit }) => {
     shootType: '',
     date: '',
     time: '',
-    price: '',
+    price: 0,
     status: 'pending',
     paymentDone: false,
     invoiceSent: false,
@@ -141,16 +141,16 @@ const BookingForm = ({ onAddBooking, editingBooking, onCancelEdit }) => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!formData?.clientName?.trim()) newErrors.clientName = 'Client name is required';
-    if (!formData?.phone?.trim()) newErrors.phone = 'Phone number is required';
-    if (!formData?.duration) newErrors.duration = 'Duration is required';
-    if (!formData?.shootType) newErrors.shootType = 'Shoot type is required';
-    if (!formData?.date) newErrors.date = 'Date is required';
-    if (!formData?.time) newErrors.time = 'Time is required';
-    if (!formData?.status) newErrors.status = 'Status is required';
-    if (!formData?.deliverables?.trim()) newErrors.deliverables = 'Deliverables are required';
-    if (!formData?.location) newErrors.location = 'Location is required';
-    if (formData.advance > formData.price) newErrors.advance = 'Advance cannot be greater than total price';
+    if (!formData?.clientName?.trim()) newErrors.clientName = alert('Client name is required');
+    if (!formData?.phone?.trim()) newErrors.phone = alert('Phone number is required');
+    if (!formData?.duration) newErrors.duration = alert('Duration is required');
+    if (!formData?.shootType) newErrors.shootType = alert('Shoot type is required');
+    if (!formData?.date) newErrors.date = alert('Date is required');
+    if (!formData?.time) newErrors.time = alert('Time is required');
+    if (!formData?.status) newErrors.status = alert('Status is required');
+    if (!formData?.deliverables?.trim()) newErrors.deliverables = alert('Deliverables are required');
+    if (!formData?.location) newErrors.location = alert('Location is required');
+    if (Number(formData?.advance) > Number(formData?.price)) newErrors.advance = alert('Advance cannot be greater than total price');
 
     setErrors(newErrors);
     return Object.keys(newErrors)?.length === 0;

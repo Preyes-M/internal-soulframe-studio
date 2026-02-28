@@ -36,6 +36,7 @@ const SmartCalendarScheduler = () => {
   };
 
   const handleAddBooking = async (formData) => {
+    console.log('Saving booking with data:', formData);
     try {
       let costRows = [];
       if (formData.costBreakdown?.length > 0) {

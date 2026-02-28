@@ -4,34 +4,15 @@ import Button from '../../../components/ui/Button';
 import { convertTo12Hour } from '../../../utils/timeFormat';
 import { bookingsService } from '../../../services/supabaseService';
 import { formatDate } from '../../../utils/timeFormat';
-
+import { Constants } from '../../../types/supabase';
+import { humanize } from '../../../utils/text';
+import { lookupService } from '../../../services/supabaseService';
+import { shootTypeColors } from '../../../utils/Constants';
 const BookingDetailsModal = ({ booking, onClose, onEdit, onDelete }) => {
   if (!booking) return null;
   const [bookingWithCosts, setBookingWithCosts] = useState(null);
-  const shootTypeLabels = {
-    modeling: 'Modeling',
-    podcasting: 'Podcasting',
-    maternity: 'Maternity',
-    fashion: 'Fashion',
-    baby: 'Baby',
-    product: 'Product'
-  };
-
-  const shootTypeColors = {
-    modeling: 'bg-blue-500/20 text-blue-400 border-blue-500',
-    podcasting: 'bg-purple-500/20 text-purple-400 border-purple-500',
-    maternity: 'bg-pink-500/20 text-pink-400 border-pink-500',
-    fashion: 'bg-red-500/20 text-red-400 border-red-500',
-    baby: 'bg-yellow-500/20 text-yellow-400 border-yellow-500',
-    product: 'bg-green-500/20 text-green-400 border-green-500'
-  };
-
-  const statusLabels = {
-    pending: 'Pending',
-    confirmed: 'Confirmed',
-    completed: 'Completed',
-    cancelled: 'Cancelled'
-  };
+  const [shootTypeOptions, setShootTypeOptions] = useState([]);
+  const [shootLoading, setShootLoading] = useState(false);
 
   const statusColors = {
     pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500',
@@ -41,31 +22,53 @@ const BookingDetailsModal = ({ booking, onClose, onEdit, onDelete }) => {
   };
 
   useEffect(() => {
-    async function fetchBookingCosts() {
-      const costs = await bookingsService?.getCosts(booking?.id);
-      if (!costs) {
-        console.warn('Error fetching booking costs:', error);
-      } else {
-        const mappedCosts = (costs || []).map(c => ({
-          id: c.id,                  // IMPORTANT for editing/deleting
-          label: c.costType,
-          cost: c.amount.toString(),
-          vendor: c.vendorName || ''
-        }));
-        const bookingWithCosts = {
-          ...booking,
-          costBreakdown: mappedCosts
-        };
-        setBookingWithCosts(prev => ({
-          booking: booking,
-          costBreakdown: mappedCosts
-        }));
-        console.log('Fetched booking with costs:', bookingWithCosts);
-      } 
-    }
     fetchBookingCosts();
+    fetchEnums();
+    const shootTypeLabel = shootTypeOptions
+      ?.find(o => o.value === booking?.shootType)
+      ?.label ?? booking?.shootType;
   }, [booking?.id]);
 
+  async function fetchBookingCosts() {
+    const costs = await bookingsService?.getCosts(booking?.id);
+    if (!costs) {
+      console.warn('Error fetching booking costs:', error);
+    } else {
+      const mappedCosts = (costs || []).map(c => ({
+        id: c.id,                  // IMPORTANT for editing/deleting
+        label: c.costType,
+        cost: c.amount.toString(),
+        vendor: c.vendorName || ''
+      }));
+      const bookingWithCosts = {
+        ...booking,
+        costBreakdown: mappedCosts
+      };
+      setBookingWithCosts(prev => ({
+        booking: booking,
+        costBreakdown: mappedCosts
+      }));
+      console.log('Fetched booking with costs:', bookingWithCosts);
+    }
+  }
+
+  const fetchEnums = async () => {
+    setShootLoading(true);
+    try {
+      const [shootData] = await Promise.all([
+        lookupService.getEnumValues('shoot_type'),
+      ]);
+
+      const shootOpts = (shootData || []).map((v) => ({ value: v, label: humanize(v) }));
+      setShootTypeOptions(shootOpts);
+    } catch (err) {
+      console.error('Failed to fetch enum values from DB:', err);
+      const fallbackShoot = (Constants?.public?.Enums?.shoot_type || []).map((v) => ({ value: v, label: humanize(v) }));
+      setShootTypeOptions(fallbackShoot);
+    } finally {
+      setShootLoading(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[500] flex items-center justify-center p-4 bg-background/80 backdrop-blur-sm">
@@ -90,11 +93,11 @@ const BookingDetailsModal = ({ booking, onClose, onEdit, onDelete }) => {
               <div className="flex items-center gap-2 flex-wrap">
                 <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg border text-sm font-medium ${shootTypeColors?.[booking?.shootType]}`}>
                   <Icon name="Camera" size={16} />
-                  {shootTypeLabels?.[booking?.shootType]}
+                  {shootTypeOptions ?.find(opt => opt.value === booking?.shootType)?.label}
                 </div>
                 <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg border text-sm font-medium ${statusColors?.[booking?.status] || statusColors?.pending}`}>
                   <Icon name="Info" size={16} />
-                  {statusLabels?.[booking?.status] || 'Pending'}
+                  {humanize([booking?.status]) || 'NA'}
                 </div>
               </div>
             </div>
