@@ -1,11 +1,11 @@
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import React from 'react';
 import Icon from '../../../components/AppIcon';
 import { convertTo12Hour } from '../../../utils/timeFormat';
 import { shootTypeColors } from '../../../utils/Constants';
 
 const UpcomingBookings = ({ bookings, onBookingClick }) => {
-
+  const [shootTypeOptions, setShootTypeOptions] = useState([]);
   useEffect(() => {
     fetchEnums();
   });
