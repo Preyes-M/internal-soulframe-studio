@@ -41,10 +41,12 @@ const BookingForm = ({ onAddBooking, editingBooking, onCancelEdit }) => {
     (sum, item) => sum + parseFloat(item?.cost || 0),
     0
   );
-  let netRevenue = gross - totalCosts;
-  if(formData?.gst > 0) {
-    netRevenue = Math.round(netRevenue - (netRevenue * formData.gst / 100)); // Assuming GST is in percentage
+  let gstAmount = 0;
+  if (formData?.gst > 0) {
+    gstAmount = gross * formData.gst / 100;
   }
+  const totalCharged = gross + gstAmount;
+  const netRevenue = Math.round(totalCharged - totalCosts);
 
   const addCostItem = () => {
     setFormData(prev => ({
