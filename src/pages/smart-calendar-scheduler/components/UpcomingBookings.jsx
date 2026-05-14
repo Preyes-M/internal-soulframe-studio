@@ -6,6 +6,7 @@ import { shootTypeColors } from '../../../utils/Constants';
 
 const UpcomingBookings = ({ bookings, onBookingClick }) => {
   const [shootTypeOptions, setShootTypeOptions] = useState([]);
+  const[shootLoading, setShootLoading] = useState([]);
   useEffect(() => {
     fetchEnums();
   });
