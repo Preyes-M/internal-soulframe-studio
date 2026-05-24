@@ -5,7 +5,7 @@ import { convertTo12Hour } from '../../../utils/timeFormat';
 import { shootTypeColors } from '../../../utils/Constants';
 import { lookupService } from '../../../services/supabaseService';
 import { Constants } from '../../../types/supabase';
-import { humanize } from '../../../utils/stringUtils';
+import { humanize } from '../../../utils/text';
 
 const UpcomingBookings = ({ bookings, onBookingClick }) => {
   const [shootTypeOptions, setShootTypeOptions] = useState([]);
