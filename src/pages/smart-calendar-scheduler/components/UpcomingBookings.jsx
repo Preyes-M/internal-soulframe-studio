@@ -12,7 +12,7 @@ const UpcomingBookings = ({ bookings, onBookingClick }) => {
   const[shootLoading, setShootLoading] = useState([]);
   useEffect(() => {
     fetchEnums();
-  });
+  }, []);
 
   const fetchEnums = async () => {
     setShootLoading(true);
