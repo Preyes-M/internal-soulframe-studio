@@ -161,7 +161,19 @@ const BookingForm = ({ onAddBooking, editingBooking, onCancelEdit }) => {
   const handleSubmit = (e) => {
     e?.preventDefault();
     if (validateForm()) {
-      onAddBooking(formData);
+      // Convert numeric fields to numbers before submitting
+      const submissionData = {
+        ...formData,
+        price: Number(formData?.price) || 0,
+        advance: Number(formData?.advance) || 0,
+        gst: Number(formData?.gst) || 0,
+        duration: Number(formData?.duration) || 0,
+        costBreakdown: (formData?.costBreakdown || []).map(item => ({
+          ...item,
+          cost: Number(item?.cost) || 0
+        }))
+      };
+      onAddBooking(submissionData);
       setFormData(initialTaskForm);
     }
   };
