@@ -62,6 +62,9 @@ const toSnakeCase = (obj) => {
   return obj;
 };
 
+// Last 10 digits of a phone number, used to match bookings to clients
+export const normalizePhone = (phone) => String(phone || '').replace(/\D/g, '').slice(-10);
+
 // Bookings Service
 export const bookingsService = {
   async getDayBookings(date) {
@@ -637,6 +640,55 @@ export const clientsService = {
     const shootTypes = Array.from(new Set((data || []).flatMap((d) => d?.shoot_types || []).filter(Boolean)));
 
     return { statuses, shootTypes };
+  },
+
+  // Ensures every booking's client exists and that projectValue = sum of completed booking prices.
+  // Recomputes from scratch (never increments), so it is safe to run repeatedly; only writes on change.
+  async syncFromBookings(bookings, clients) {
+    const byPhone = new Map();
+    (bookings || []).forEach((booking) => {
+      const phone = normalizePhone(booking?.phone);
+      if (phone.length !== 10) return;
+      if (!byPhone.has(phone)) byPhone.set(phone, []);
+      byPhone.get(phone).push(booking);
+    });
+
+    // clients come newest-first from getAll, so the first match per phone wins
+    const clientByPhone = new Map();
+    (clients || []).forEach((client) => {
+      const phone = normalizePhone(client?.phone);
+      if (phone.length === 10 && !clientByPhone.has(phone)) clientByPhone.set(phone, client);
+    });
+
+    let changed = false;
+    for (const [phone, phoneBookings] of byPhone) {
+      const projectValue = phoneBookings
+        .filter((b) => b?.status === 'completed')
+        .reduce((sum, b) => sum + (Number(b?.price) || 0), 0);
+      const existing = clientByPhone.get(phone);
+
+      if (!existing) {
+        const latest = phoneBookings.reduce((a, b) => (String(b?.date) > String(a?.date) ? b : a));
+        const name = latest?.clientName?.trim() || 'Unknown';
+        await this.create({
+          name,
+          phone: `+91${phone}`,
+          whatsapp: `+91${phone}`,
+          status: 'booked',
+          shootTypes: Array.from(new Set(phoneBookings.map((b) => b?.shootType).filter(Boolean))),
+          projectValue,
+          lastContact: new Date().toISOString(),
+          avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}`,
+          avatarAlt: `Profile picture of ${name}`
+        });
+        changed = true;
+      } else if (Number(existing?.projectValue || 0) !== projectValue) {
+        await this.update(existing.id, { projectValue });
+        changed = true;
+      }
+    }
+
+    return changed ? this.getAll() : clients;
   },
 
   async addCommunication(clientId, communication) {

@@ -13,12 +13,35 @@ const CalendarHeader = ({ currentDate, view, onViewChange, onNavigate, onToday }
     { value: 'day', label: 'Day', icon: 'CalendarClock' }
   ];
 
+  const getPeriodLabel = () => {
+    if (view === 'day') {
+      return currentDate?.toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+    }
+    if (view === 'week') {
+      const start = new Date(currentDate);
+      start.setDate(currentDate.getDate() - currentDate.getDay());
+      const end = new Date(start);
+      end.setDate(start.getDate() + 6);
+      const startLabel = start.toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        ...(start.getFullYear() !== end.getFullYear() && { year: 'numeric' })
+      });
+      const endLabel = end.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+      return `${startLabel} – ${endLabel}`;
+    }
+    return currentDate?.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' });
+  };
+
   return (
     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4 md:mb-6">
       <div className="flex items-center gap-3">
-        <h1 className="text-2xl md:text-3xl font-semibold text-foreground">
-          {formatDate()}
-        </h1>
+        <div>
+          <h1 className="text-2xl md:text-3xl font-semibold text-foreground">
+            {getPeriodLabel()}
+          </h1>
+          <div className="text-xs text-muted-foreground mt-1">Today: {formatDate(new Date())}</div>
+        </div>
         <Button
           variant="outline"
           size="sm"

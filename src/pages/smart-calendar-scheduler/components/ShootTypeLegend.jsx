@@ -32,7 +32,6 @@ const ShootTypeLegend = ({ bookings }) => {
               className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 transition-colors duration-200"
             >
               <div className="flex items-center gap-3">
-                <div className={`w-3 h-3 rounded-full ${type?.color}`} />
                 <div className="flex items-center gap-2">
                   <Icon name={type?.icon} size={16} className="text-muted-foreground" />
                   <span className="text-sm font-medium text-foreground">{type?.label}</span>

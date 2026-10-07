@@ -1,12 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Layout from '../../components/Layout';
 import BookingForm from './components/BookingForm';
 import CalendarHeader from './components/CalendarHeader';
 import CalendarGrid from './components/CalendarGrid';
 import BookingDetailsModal from './components/BookingDetailsModal';
 import ShootTypeLegend from './components/ShootTypeLegend';
+import StatusLegend from './components/StatusLegend';
 import UpcomingBookings from './components/UpcomingBookings';
-import { bookingsService } from '../../services/supabaseService';
+import { bookingsService, clientsService } from '../../services/supabaseService';
 
 const SmartCalendarScheduler = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -16,6 +17,19 @@ const SmartCalendarScheduler = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [editingBooking, setEditingBooking] = useState(null);
+  const [clients, setClients] = useState([]);
+  const syncQueue = useRef(Promise.resolve());
+
+  // Keep the client DB in step with bookings. Queued so overlapping syncs can't create duplicate clients.
+  const syncClients = (latestBookings) => {
+    syncQueue.current = syncQueue.current
+      .then(async () => {
+        const current = await clientsService?.getAll();
+        const synced = await clientsService?.syncFromBookings(latestBookings, current);
+        setClients(synced || []);
+      })
+      .catch((err) => console.error('Failed to sync clients from bookings:', err));
+  };
 
   useEffect(() => {
     loadBookings();
@@ -27,6 +41,7 @@ const SmartCalendarScheduler = () => {
       const data = await bookingsService?.getAll();
       setBookings(data || []);
       setError(null);
+      syncClients(data || []);
     } catch (err) {
       console.error('Failed to load bookings:', err);
       setError('Failed to load bookings');
@@ -50,13 +65,17 @@ const SmartCalendarScheduler = () => {
         console.log('Updating booking with data:', formData, 'and costs:', costRows);
         const updated = await bookingsService?.update(editingBooking?.id, formData, costRows);
         if (updated) {
-          setBookings(bookings?.map(b => b?.id === updated?.id ? updated : b));
+          const next = bookings?.map(b => b?.id === updated?.id ? updated : b);
+          setBookings(next);
           setEditingBooking(null);
+          syncClients(next);
         }
       } else {
         const newBooking = await bookingsService?.create(formData, costRows);
         if (newBooking) {
-          setBookings([...bookings, newBooking]);
+          const next = [...bookings, newBooking];
+          setBookings(next);
+          syncClients(next);
         }
       }
     } catch (err) {
@@ -103,8 +122,10 @@ const SmartCalendarScheduler = () => {
     try {
       const success = await bookingsService?.delete(bookingId);
       if (success) {
-        setBookings(bookings?.filter(b => b?.id !== bookingId));
+        const next = bookings?.filter(b => b?.id !== bookingId);
+        setBookings(next);
         setSelectedBooking(null);
+        syncClients(next);
       }
     } catch (err) {
       console.error('Failed to delete booking:', err);
@@ -146,6 +167,7 @@ const SmartCalendarScheduler = () => {
             <div className="lg:col-span-3 space-y-4 md:space-y-6">
               <BookingForm
                 onAddBooking={handleAddBooking}
+                clients={clients}
                 editingBooking={editingBooking}
                 onCancelEdit={() => setEditingBooking(null)}
               />
@@ -157,6 +179,7 @@ const SmartCalendarScheduler = () => {
             </div>
 
             <div className="lg:col-span-9">
+              <StatusLegend bookings={bookings} currentDate={currentDate} view={view} />
               <CalendarGrid
                 view={view}
                 currentDate={currentDate}

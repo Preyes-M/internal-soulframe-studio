@@ -1,7 +1,7 @@
 import React from 'react';
 import Icon from '../../../components/AppIcon';
 import { convertTo12Hour } from '../../../utils/timeFormat';
-import { shootTypeColors } from '../../../utils/Constants';
+import { getBookingStatus } from '../bookingStatus';
 
 const CalendarGrid = ({ view, currentDate, bookings, onBookingClick }) => {
   const getDaysInMonth = (date) => {
@@ -91,7 +91,7 @@ const CalendarGrid = ({ view, currentDate, bookings, onBookingClick }) => {
                         <div
                           key={booking?.id}
                           className={`text-xs px-2 py-1 rounded border cursor-pointer hover:opacity-80 transition-opacity ${
-                            shootTypeColors?.[booking?.shootType]
+                            getBookingStatus(booking)?.classes
                           }`}
                           onClick={() => onBookingClick(booking)}
                         >
@@ -163,7 +163,7 @@ const CalendarGrid = ({ view, currentDate, bookings, onBookingClick }) => {
                       <div
                         key={booking?.id}
                         className={`text-xs px-2 py-1 rounded border cursor-pointer hover:opacity-80 transition-opacity mb-1 ${
-                          shootTypeColors?.[booking?.shootType]
+                          getBookingStatus(booking)?.classes
                         }`}
                         onClick={() => onBookingClick(booking)}
                       >
@@ -219,7 +219,7 @@ const CalendarGrid = ({ view, currentDate, bookings, onBookingClick }) => {
                     <div
                       key={booking?.id}
                       className={`px-4 py-3 rounded-lg border cursor-pointer hover:opacity-80 transition-opacity mb-2 ${
-                        shootTypeColors?.[booking?.shootType]
+                        getBookingStatus(booking)?.classes
                       }`}
                       onClick={() => onBookingClick(booking)}
                     >

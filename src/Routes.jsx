@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes as RouterRoutes, Route } from "react-router-dom";
+import { BrowserRouter, Routes as RouterRoutes, Route, Navigate } from "react-router-dom";
 import ScrollToTop from "components/ScrollToTop";
 import ErrorBoundary from "components/ErrorBoundary";
 import NotFound from "pages/NotFound";
@@ -25,7 +25,7 @@ const Routes = () => {
         <Route path="/signup" element={<SignUp />} />
         
         {/* Protected routes */}
-        <Route path="/" element={<ProtectedRoute><CommandCenterDashboard /></ProtectedRoute>} />
+        <Route path="/" element={<Navigate to="/smart-calendar-scheduler" replace />} />
         <Route path="/command-center-dashboard" element={<ProtectedRoute><CommandCenterDashboard /></ProtectedRoute>} />
         <Route path="/kanban-task-management-board" element={<ProtectedRoute><KanbanTaskManagementBoard /></ProtectedRoute>} />
         <Route path="/smart-calendar-scheduler" element={<ProtectedRoute><SmartCalendarScheduler /></ProtectedRoute>} />
