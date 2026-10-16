@@ -8,18 +8,14 @@ import { Constants } from '../../../types/supabase';
 import { humanize } from '../../../utils/text';
 import { lookupService } from '../../../services/supabaseService';
 import { shootTypeColors } from '../../../utils/Constants';
+import { getBookingStatus } from '../bookingStatus';
 const BookingDetailsModal = ({ booking, onClose, onEdit, onDelete }) => {
   if (!booking) return null;
   const [bookingWithCosts, setBookingWithCosts] = useState(null);
   const [shootTypeOptions, setShootTypeOptions] = useState([]);
   const [shootLoading, setShootLoading] = useState(false);
 
-  const statusColors = {
-    pending: 'bg-yellow-500/20 text-yellow-400 border-yellow-500',
-    confirmed: 'bg-green-500/20 text-green-400 border-green-500',
-    completed: 'bg-blue-500/20 text-blue-400 border-blue-500',
-    cancelled: 'bg-red-500/20 text-red-400 border-red-500'
-  };
+  const shootStatus = getBookingStatus(booking);
 
   useEffect(() => {
     fetchBookingCosts();
@@ -92,9 +88,9 @@ const BookingDetailsModal = ({ booking, onClose, onEdit, onDelete }) => {
                   <Icon name="Camera" size={16} />
                   {shootTypeOptions ?.find(opt => opt.value === booking?.shootType)?.label}
                 </div>
-                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg border text-sm font-medium ${statusColors?.[booking?.status] || statusColors?.pending}`}>
-                  <Icon name="Info" size={16} />
-                  {humanize([booking?.status]) || 'NA'}
+                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg border text-sm font-medium ${shootStatus?.classes}`}>
+                  <Icon name={shootStatus?.icon} size={16} />
+                  {shootStatus?.label}
                 </div>
               </div>
             </div>
@@ -164,13 +160,13 @@ const BookingDetailsModal = ({ booking, onClose, onEdit, onDelete }) => {
             )}
 
             <div className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg">
-              <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-500/20">
-                <Icon name="CreditCard" size={20} color="#3b82f6" />
+              <div className={`flex items-center justify-center w-10 h-10 rounded-lg border ${shootStatus?.classes}`}>
+                <Icon name={shootStatus?.icon} size={20} />
               </div>
               <div>
-                <div className="text-xs text-muted-foreground mb-1">Deposit Status</div>
+                <div className="text-xs text-muted-foreground mb-1">Shoot Status</div>
                 <div className="text-sm font-medium text-foreground">
-                  {booking?.depositPaid || booking?.deposit_paid ? 'Paid' : 'Not Paid'}
+                  {shootStatus?.label}
                 </div>
               </div>
             </div>

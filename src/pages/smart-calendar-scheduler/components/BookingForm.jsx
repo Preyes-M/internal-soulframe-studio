@@ -4,11 +4,15 @@ import Input from '../../../components/ui/Input';
 import Select from '../../../components/ui/Select';
 import Button from '../../../components/ui/Button';
 import { Checkbox } from '../../../components/ui/Checkbox';
-import { lookupService } from '../../../services/supabaseService';
+import ClientPhoneLookup from './ClientPhoneLookup';
+import { lookupService, normalizePhone } from '../../../services/supabaseService';
+
+// Indian mobile: optional +91 / 91 / 0 prefix, then 10 digits starting 6-9
+const isValidPhone = (phone) => /^(\+?91|0)?[6-9]\d{9}$/.test(String(phone || '').replace(/[\s()-]/g, ''));
 import { Constants } from '../../../types/supabase';
 import { humanize } from '../../../utils/text';
 
-const BookingForm = ({ onAddBooking, editingBooking, onCancelEdit }) => {
+const BookingForm = ({ onAddBooking, editingBooking, onCancelEdit, clients }) => {
   const initialTaskForm = {
     id: null,
     clientName: '',
@@ -116,7 +120,7 @@ const BookingForm = ({ onAddBooking, editingBooking, onCancelEdit }) => {
         invoiceSent: editingBooking?.booking.invoiceSent || false,
         advance: editingBooking?.booking.advance || 0,
         deliverables: editingBooking?.booking.deliverables || '',
-        paymentDone: editingBooking?.booking.paymentDone || false,
+        paymentDone: editingBooking?.booking.paymentStatus ?? editingBooking?.booking.paymentDone ?? false,
         location: editingBooking?.booking.location || '',
         notes: editingBooking?.booking.notes || '',
         costBreakdown: editingBooking?.costBreakdown || []
@@ -141,10 +145,16 @@ const BookingForm = ({ onAddBooking, editingBooking, onCancelEdit }) => {
     }
   };
 
+  const handleSelectClient = (client) => {
+    handleChange('phone', client?.phone || '');
+    handleChange('clientName', client?.name || '');
+  };
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData?.clientName?.trim()) newErrors.clientName = alert('Client name is required');
-    if (!formData?.phone?.trim()) newErrors.phone = alert('Phone number is required');
+    if (!String(formData?.phone || '').trim()) newErrors.phone = alert('Phone number is required');
+    else if (!isValidPhone(formData?.phone)) newErrors.phone = alert('Enter a valid 10-digit mobile number (e.g. +91 98765 43210)');
     if (!formData?.duration) newErrors.duration = alert('Duration is required');
     if (!formData?.shootType) newErrors.shootType = alert('Shoot type is required');
     if (!formData?.date) newErrors.date = alert('Date is required');
@@ -164,6 +174,7 @@ const BookingForm = ({ onAddBooking, editingBooking, onCancelEdit }) => {
       // Convert numeric fields to numbers before submitting
       const submissionData = {
         ...formData,
+        phone: `+91${normalizePhone(formData?.phone)}`,
         price: Number(formData?.price) || 0,
         advance: Number(formData?.advance) || 0,
         gst: Number(formData?.gst) || 0,
@@ -195,24 +206,27 @@ const BookingForm = ({ onAddBooking, editingBooking, onCancelEdit }) => {
         </h2>
       </div>
       <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          label="Client Name"
-          type="text"
-          placeholder="Enter client name"
-          value={formData?.clientName}
-          onChange={(e) => handleChange('clientName', e?.target?.value)}
-          error={errors?.clientName}
-          required
-        />
-
-        <Input
+        <ClientPhoneLookup
+          mode="phone"
           label="Phone Number"
           type="tel"
           placeholder="+91 XXXXX XXXXX"
           value={formData?.phone}
-          onChange={(e) => handleChange('phone', e?.target?.value)}
+          clients={clients}
+          onChange={(value) => handleChange('phone', value)}
+          onSelectClient={handleSelectClient}
           error={errors?.phone}
-          required
+        />
+
+        <ClientPhoneLookup
+          mode="name"
+          label="Client Name"
+          placeholder="Enter client name"
+          value={formData?.clientName}
+          clients={clients}
+          onChange={(value) => handleChange('clientName', value)}
+          onSelectClient={handleSelectClient}
+          error={errors?.clientName}
         />
 
         <Select
